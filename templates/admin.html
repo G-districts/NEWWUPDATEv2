@@ -1,768 +1,656 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>GSchool Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · G School</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 1.5rem;
-      color: #222;
-      background: #f7f7fb;
-    }
-    h1 {
-      margin-bottom: 0.5rem;
-    }
-    h2, h3, h4 {
-      margin-top: 1.6rem;
-      margin-bottom: 0.6rem;
-    }
-    section, article, fieldset {
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem 1.2rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-    }
-    fieldset {
-      border: 1px solid #ddd;
-    }
-    legend {
-      font-weight: 600;
-      padding: 0 0.25rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.4rem;
-    }
-    input[type="text"],
-    input[type="number"],
-    input[type="time"],
-    input[type="url"],
-    select,
-    textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.35rem 0.5rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 0.9rem;
-      margin-top: 0.15rem;
-    }
-    textarea {
-      resize: vertical;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: 0.9rem;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 0.35rem 0.5rem;
-      vertical-align: middle;
-    }
-    th {
-      background: #f0f0f5;
-      text-align: left;
-    }
-    .mini {
-      font-size: 0.82rem;
-      color: #555;
-    }
-    .grid2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-    .grid3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-    button {
-      border-radius: 4px;
-      border: none;
-      padding: 0.35rem 0.8rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin-right: 0.4rem;
-      margin-top: 0.3rem;
-    }
-    button.primary {
-      background: #2563eb;
-      color: #fff;
-    }
-    button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    button.danger {
-      background: #dc2626;
-      color: #fff;
-    }
-    button.small {
-      font-size: 0.8rem;
-      padding: 0.25rem 0.6rem;
-    }
+    body { max-width:1200px; margin:auto; padding:1rem }
+    body, label, h3, h4, .mini, button, .btn { color:#000 !important; }
+    table { width:100%; border-collapse:collapse; margin-top:10px }
+    th, td { border:1px solid #ccc; padding:6px; text-align:left }
+    td input[type="url"] { width:100% }
+    .mini { font-size: 0.85rem; color:#444; }
+    .flex-row { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-start; }
+    .flex-1 { flex:1; min-width:260px; }
+    .flex-2 { flex:2; min-width:320px; }
     ul#policiesList {
-      list-style: none;
-      padding-left: 0;
+      list-style:none;
+      padding-left:0;
+      max-height:240px;
+      overflow-y:auto;
+      border:1px solid #ccc;
+      border-radius:4px;
     }
     ul#policiesList li {
-      padding: 0.2rem 0.3rem;
-      border-radius: 4px;
+      padding:4px 8px;
+      cursor:pointer;
+    }
+    ul#policiesList li:nth-child(odd) {
+      background:#f9fafb;
     }
     ul#policiesList li.selected {
-      background: #e0f2fe;
-    }
-    .flex-row {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .flex-1 { flex: 1; min-width: 260px; }
-    .flex-2 { flex: 2; min-width: 320px; }
-    #policyCategoriesContainer label {
-      display: inline-block;
-      margin-right: 0.75rem;
-      margin-bottom: 0.2rem;
+      background:#e0f2fe;
     }
     #policyCategoriesContainer {
-      max-height: 140px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 0.4rem;
-      background: #fafafa;
+      border:1px solid #ccc;
+      border-radius:4px;
+      padding:6px;
+      max-height:140px;
+      overflow-y:auto;
+      background:#f9fafb;
+    }
+    #policyCategoriesContainer label {
+      display:inline-block;
+      margin-right:0.75rem;
+      margin-bottom:0.15rem;
+    }
+    textarea {
+      width:100%;
     }
   </style>
 </head>
 <body>
-  <h1>GSchool Admin</h1>
+<nav>
+  <ul><li><strong>Admin</strong></li></ul>
+  <ul><li><a href="/teacher">Teacher</a></li><li><a href="/logout">Logout</a></li></ul>
+</nav>
+
+<h3>Settings</h3>
+<article>
+  <label>Default Blocked Redirect URL 
+    <input id="blocked" type="url" value="{{ data.settings.blocked_redirect|default('https://blocked.gdistrict.org/Gschool%20block') }}">
+  </label>
+  <label>
+    <input id="chat" type="checkbox" {{ 'checked' if data.settings.chat_enabled|default(False) else '' }}>
+    Enable Chat
+  </label>
+  <label>Extension Passcode
+    <input id="passcode" type="password" placeholder="admin1234">
+  </label>
+  <label>
+    <input id="bypassEnabled" type="checkbox" {{ 'checked' if data.settings.bypass_enabled|default(False) else '' }}>
+    Enable Bypass Override on Block Pages
+  </label>
+  <label>Bypass Code
+    <input id="bypassCode" type="password" value="{{ data.settings.bypass_code|default('') }}" placeholder="e.g. secret123">
+  </label>
+  <label>Bypass Duration (minutes)
+    <input id="bypassTTL" type="number" min="1" max="1440" value="{{ data.settings.bypass_ttl_minutes|default(10) }}">
+  </label>
+  <button id="save">Save</button>
+  <small id="msg" style="margin-left:8px"></small>
+</article>
+
+<h3>Policies</h3>
+<article>
   <p class="mini">
-    Admin controls for AI categories, schedules, and policies. Students use the Chrome extension,
-    which calls this server to get their active policy and filtering rules.
+    Policies control <b>all blocking</b> for students: AI categories and manual URLs.
+    The Chrome extension sends the student’s identity to the GSchool server, and the server decides:
+    <br>
+    <b>1)</b> If there is a user-specific policy for that student email<br>
+    <b>2)</b> Otherwise, if there is a class/group policy (not configured here yet)<br>
+    <b>3)</b> Otherwise, the Default policy (if set)<br>
+    Among all applicable policies, the one with the highest <b>Priority</b> that is currently active
+    by its schedule is used.
   </p>
 
-  <!-- =========================
-       AI Categories & Schedule
-       ========================= -->
-  <section>
-    <h2>Categories (AI-powered)</h2>
+  <div class="flex-row">
+    <!-- Policy list -->
+    <div class="flex-1">
+      <h4>Existing Policies</h4>
+      <ul id="policiesList"></ul>
+      <button id="newPolicyBtn" class="secondary">New Policy</button>
+      <button id="deletePolicyBtn" class="secondary" style="background:#fee2e2;border-color:#fecaca;">Delete Selected</button>
+      <p class="mini">
+        Click a policy to edit. “(default)” means it’s the default when a student has no other policy.
+      </p>
+    </div>
+
+    <!-- Policy editor -->
+    <div class="flex-2">
+      <h4>Edit Policy</h4>
+      <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+        <label style="flex:1; min-width:220px;">
+          Policy ID
+          <input id="policyId" type="text" readonly placeholder="auto-generated for new">
+        </label>
+        <label style="flex:1; min-width:220px;">
+          Policy Name
+          <input id="policyName" type="text" placeholder="e.g. Exam Lockdown">
+        </label>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; margin-top:0.5rem;">
+        <label style="flex:1; min-width:160px;">
+          Priority
+          <input id="policyPriority" type="number" value="0">
+          <small class="mini">Higher number = wins when multiple policies apply.</small>
+        </label>
+        <label style="flex:none;">
+          <input id="policyActive" type="checkbox" checked> Active
+        </label>
+        <label style="flex:1; min-width:160px;">
+          Default for unassigned users?
+          <select id="policyIsDefault">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </label>
+      </div>
+      <p class="mini">
+        <b>Currently default policy:</b> <span id="currentDefaultLabel">(none)</span>
+      </p>
+
+      <h4>Schedule (optional)</h4>
+      <p class="mini">
+        Use this to automatically turn this policy on/off at specific times. If disabled, the policy is
+        always active (when “Active” is checked).
+      </p>
+      <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+        <label>
+          <input id="policyScheduleEnabled" type="checkbox"> Use schedule for this policy
+        </label>
+        <label>
+          Start time
+          <input id="policyStart" type="time">
+        </label>
+        <label>
+          End time
+          <input id="policyEnd" type="time">
+        </label>
+        <label>
+          <input id="policyWeekdaysOnly" type="checkbox"> Weekdays only (Mon–Fri)
+        </label>
+      </div>
+
+      <h4>Categories (from AI classify)</h4>
+      <p class="mini">
+        These categories come from the AI classifier. Check any category that this policy should
+        <b>block</b>. Unchecked categories follow whatever other policy (or default) applies.
+      </p>
+      <div id="policyCategoriesContainer" class="mini">
+        Loading AI categories…
+      </div>
+
+      <h4>Manual URLs</h4>
+      <label>Block URLs (one per line, supports * wildcards)
+        <textarea id="policyBlockUrls" rows="3" placeholder="e.g. *://*.games.com/*"></textarea>
+      </label>
+      <label>Allow URLs (one per line, supports * wildcards)
+        <textarea id="policyAllowUrls" rows="3" placeholder="e.g. *://*.khanacademy.org/*"></textarea>
+      </label>
+
+      <h4>Student Emails for this Policy</h4>
+      <p class="mini">
+        These are the student emails that the Chrome extension uses when talking to the server.
+        Each email here will have this policy applied, unless a higher-priority policy also applies.
+      </p>
+      <label>Student Emails (one per line)
+        <textarea id="policyEmails" rows="4" placeholder="student1@example.com&#10;student2@example.com"></textarea>
+      </label>
+
+      <button id="savePolicyBtn">Save Policy</button>
+      <small id="policiesMsg" class="mini" style="margin-left:8px;"></small>
+    </div>
+  </div>
+</article>
+
+<!-- SIMPLE USER MANAGEMENT (no student stuff here) -->
+<h3>Users</h3>
+<article>
+  <details open>
+    <summary>Admin &amp; Teacher Accounts</summary>
     <p class="mini">
-      These categories come from the AI classifier. You can toggle blocking globally here.
-      Per-policy overrides are configured in the Policies section below.
+      Create / update / delete sign-in accounts for the teacher and admin dashboards.
+      These accounts <b>do not</b> affect student extension logins.
     </p>
-    <article>
-      <table>
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Blocked globally?</th>
-            <th>Block URL (optional)</th>
-            <th>Save</th>
-          </tr>
-        </thead>
-        <tbody id="cats">
-          <tr><td colspan="4" class="mini">Loading categories…</td></tr>
-        </tbody>
-      </table>
-      <div id="catMsg" class="mini"></div>
-    </article>
 
-    <h3>Schedules per Category</h3>
-    <article>
-      <p class="mini">
-        Here you can define a global schedule for individual AI categories. Policy-specific schedules are handled inside each policy.
-      </p>
-      <div class="grid2">
-        <label>Category
-          <select id="schedCategory"></select>
-        </label>
-        <label>
-          <input type="checkbox" id="schedEnabled"> Use schedule for this category
-        </label>
-      </div>
-      <div class="grid3">
-        <label>Start (HH:MM)
-          <input type="time" id="schedStart">
-        </label>
-        <label>End (HH:MM)
-          <input type="time" id="schedEnd">
-        </label>
-        <label>
-          <input type="checkbox" id="schedWeekdays"> Weekdays only
-        </label>
-      </div>
-      <button id="saveScheduleBtn" class="secondary small">Save Category Schedule</button>
-      <span id="schedMsg" class="mini"></span>
-    </article>
-  </section>
+    <!-- Create / Update -->
+    <h4>Create or Update User</h4>
+    <label>Email
+      <input type="email" id="userEmail" placeholder="teacher@example.com">
+    </label>
+    <label>Password
+      <input type="password" id="userPassword" placeholder="Set or reset password">
+    </label>
+    <label>Role
+      <select id="userRole">
+        <option value="teacher">Teacher</option>
+        <option value="admin">Admin</option>
+      </select>
+    </label>
+    <button id="saveUser">Save User</button>
+    <p id="userMsg" class="mini"></p>
 
-  <!-- =========================
-       Policies
-       ========================= -->
-  <section>
-    <h2>Policies</h2>
-    <article>
-      <p class="mini">
-        Policies are presets that combine AI categories (from the classifier) and manual allow/block URL lists.
-        For each student, the extension asks this server which policy applies. The rules are:
-        <br>
-        1) User-specific policy → 2) Class/group policy → 3) Default policy. Among those, the highest <b>Priority</b> (largest number)
-        that is currently active by schedule wins.
-      </p>
+    <hr>
 
-      <div class="flex-row">
-        <!-- Policy list -->
-        <div class="flex-1">
-          <h4>Existing Policies</h4>
-          <ul id="policiesList" class="mini"></ul>
-          <button id="newPolicyBtn" class="secondary small">New Policy</button>
-          <button id="deletePolicyBtn" class="danger small">Delete Selected</button>
-        </div>
+    <!-- Delete -->
+    <h4>Delete User</h4>
+    <label>Email
+      <input type="email" id="deleteEmail" placeholder="teacher@example.com">
+    </label>
+    <button id="deleteUser" class="secondary">Delete User</button>
+    <p id="deleteMsg" class="mini"></p>
+  </details>
+</article>
 
-        <!-- Policy editor -->
-        <div class="flex-2">
-          <h4>Edit Policy</h4>
-          <div class="grid2">
-            <label>Policy ID
-              <input id="policyId" type="text" readonly placeholder="auto-generated for new">
-            </label>
-            <label>Policy Name
-              <input id="policyName" type="text" placeholder="e.g. Exam Lockdown">
-            </label>
-          </div>
+<script>
+  // ============ Settings ============
+  document.getElementById('save').onclick = async () => {
+    const body = {
+      blocked_redirect: document.getElementById('blocked').value,
+      chat_enabled: document.getElementById('chat').checked,
+      passcode: document.getElementById('passcode').value,
+      bypass_enabled: document.getElementById('bypassEnabled').checked,
+      bypass_code: document.getElementById('bypassCode').value,
+      bypass_ttl_minutes: parseInt(document.getElementById('bypassTTL').value || '10', 10)
+    };
+    const r = await fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const msg = document.getElementById('msg');
+    msg.textContent = r.ok ? 'Saved' : 'Error';
+    msg.style.color = r.ok ? 'green' : 'crimson';
+    setTimeout(()=>{ msg.textContent = ''; }, 1500);
+  };
 
-          <div class="grid2">
-            <label>Priority
-              <input id="policyPriority" type="number" value="0">
-              <small class="mini">Higher number = higher priority (wins when multiple apply).</small>
-            </label>
-            <label>
-              <input id="policyActive" type="checkbox" checked> Active
-            </label>
-          </div>
+  // ============ Policies (all blocking managed here) ============
+  let POLICIES = {};
+  let ASSIGNMENTS = { users: {}, groups: {} };
+  let DEFAULT_POLICY_ID = null;
+  let CURRENT_POLICY_ID = null;
+  let AI_CATEGORIES = [];
 
-          <fieldset>
-            <legend>Schedule (optional, for this policy)</legend>
-            <label>
-              <input id="policyScheduleEnabled" type="checkbox"> Use schedule for this policy
-            </label>
-            <div class="grid3">
-              <label>Start (HH:MM)
-                <input id="policyStart" type="time">
-              </label>
-              <label>End (HH:MM)
-                <input id="policyEnd" type="time">
-              </label>
-              <label>
-                <input id="policyWeekdaysOnly" type="checkbox"> Weekdays only
-              </label>
-            </div>
-            <small class="mini">
-              If schedule is off, this policy is always active (as long as "Active" is checked).
-            </small>
-          </fieldset>
+  function normalizeLines(val) {
+    if (!val) return [];
+    return val.split(/\n/).map(s => s.trim()).filter(Boolean);
+  }
 
-          <fieldset>
-            <legend>Categories (from AI classify)</legend>
-            <p class="mini">
-              Tick categories that should be <b>blocked</b> by this policy.
-              Unticked categories follow the global category settings above.
-            </p>
-            <div id="policyCategoriesContainer" class="mini">
-              <!-- checkboxes filled from /api/ai/categories -->
-            </div>
-          </fieldset>
+  function renderPolicyCategoryCheckboxes(policy) {
+    const container = document.getElementById('policyCategoriesContainer');
+    if (!container) return;
+    const blockedSet = new Set((policy && policy.blocked_categories) || []);
+    if (!AI_CATEGORIES || !AI_CATEGORIES.length) {
+      container.textContent = 'No AI categories yet. Once the classifier has categories, they will appear here.';
+      return;
+    }
+    container.innerHTML = '';
+    AI_CATEGORIES.forEach(c => {
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.dataset.catName = c.name;
+      if (blockedSet.has(c.name)) cb.checked = true;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(' ' + c.name));
+      container.appendChild(label);
+      container.appendChild(document.createElement('br'));
+    });
+  }
 
-          <fieldset>
-            <legend>Manual URLs (for this policy)</legend>
-            <label>Block URLs (one per line, supports * wildcards)
-              <textarea id="policyBlockUrls" rows="3"></textarea>
-            </label>
-            <label>Allow URLs (one per line, supports * wildcards)
-              <textarea id="policyAllowUrls" rows="3"></textarea>
-            </label>
-          </fieldset>
+  function getEmailsForPolicy(pid) {
+    const emails = [];
+    if (!ASSIGNMENTS || !ASSIGNMENTS.users) return emails;
+    Object.entries(ASSIGNMENTS.users).forEach(([email, assignedPid]) => {
+      if (assignedPid === pid) emails.push(email);
+    });
+    return emails;
+  }
 
-          <fieldset>
-            <legend>Default policy</legend>
-            <label>Default for unassigned users?
-              <select id="policyIsDefault">
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
-            </label>
-            <p class="mini">
-              <b>Currently default policy:</b>
-              <span id="currentDefaultLabel">(none)</span>
-            </p>
-            <p class="mini">
-              Default applies to students who do <u>not</u> have a user-specific or class/group policy assigned.
-            </p>
-          </fieldset>
+  function fillPolicyForm(p) {
+    const idEl = document.getElementById('policyId');
+    const nameEl = document.getElementById('policyName');
+    const prioEl = document.getElementById('policyPriority');
+    const activeEl = document.getElementById('policyActive');
+    const schedEnEl = document.getElementById('policyScheduleEnabled');
+    const startEl = document.getElementById('policyStart');
+    const endEl = document.getElementById('policyEnd');
+    const wdEl = document.getElementById('policyWeekdaysOnly');
+    const blockUrlsEl = document.getElementById('policyBlockUrls');
+    const allowUrlsEl = document.getElementById('policyAllowUrls');
+    const emailsEl = document.getElementById('policyEmails');
+    const isDefEl = document.getElementById('policyIsDefault');
 
-          <button id="savePolicyBtn" class="primary">Save Policy</button>
-          <small id="policiesMsg" class="mini"></small>
-        </div>
-      </div>
-    </article>
-  </section>
-
-  <script>
-    // ============ Categories & Schedules ============
-    let _latestCategories = [];
-
-    function updateScheduleForm() {
-      const cats = _latestCategories || [];
-      const sel = document.getElementById('schedCategory');
-      if (!sel) return;
-
-      let selectedName = sel.value;
-      if (!selectedName && cats.length) {
-        selectedName = cats[0].name;
-        sel.value = selectedName;
-      }
-
-      const cat = cats.find(c => c.name === selectedName) || {};
-      const sched = cat.schedule || null;
-
-      const enabledEl = document.getElementById('schedEnabled');
-      const startEl = document.getElementById('schedStart');
-      const endEl = document.getElementById('schedEnd');
-      const weekdaysEl = document.getElementById('schedWeekdays');
-      if (!enabledEl || !startEl || !endEl || !weekdaysEl) return;
-
-      enabledEl.checked = !!(sched && sched.enabled);
-      startEl.value = (sched && sched.start) || "";
-      endEl.value = (sched && sched.end) || "";
-      weekdaysEl.checked = !!(sched && sched.weekdays_only);
+    if (!p) {
+      CURRENT_POLICY_ID = null;
+      if (idEl) idEl.value = '';
+      if (nameEl) nameEl.value = '';
+      if (prioEl) prioEl.value = '0';
+      if (activeEl) activeEl.checked = true;
+      if (schedEnEl) schedEnEl.checked = false;
+      if (startEl) startEl.value = '';
+      if (endEl) endEl.value = '';
+      if (wdEl) wdEl.checked = false;
+      if (blockUrlsEl) blockUrlsEl.value = '';
+      if (allowUrlsEl) allowUrlsEl.value = '';
+      if (emailsEl) emailsEl.value = '';
+      if (isDefEl) isDefEl.value = 'no';
+      renderPolicyCategoryCheckboxes(null);
+      return;
     }
 
-    async function refresh() {
-      const catMsg = document.getElementById('catMsg');
-      const tbody = document.getElementById('cats');
-      if (tbody) tbody.innerHTML = '';
+    CURRENT_POLICY_ID = p.id || '';
+    if (idEl) idEl.value = p.id || '';
+    if (nameEl) nameEl.value = p.name || '';
+    if (prioEl) prioEl.value = typeof p.priority === 'number' ? p.priority : 0;
+    if (activeEl) activeEl.checked = p.active !== false;
 
-      // 1) Categories from AI API
-      try {
-        const res = await fetch('/api/ai/categories');
-        if (!res.ok) throw new Error('AI categories unavailable');
-        const j = await res.json();
-        const cats = j.categories || [];
-        _latestCategories = cats;
+    const sched = p.schedule || {};
+    if (schedEnEl) schedEnEl.checked = !!sched.enabled;
+    if (startEl) startEl.value = sched.start || '';
+    if (endEl) endEl.value = sched.end || '';
+    if (wdEl) wdEl.checked = !!sched.weekdays_only;
 
-        // Populate categories table
-        if (tbody) {
-          if (!cats.length) {
-            tbody.innerHTML = '<tr><td colspan="4">No AI categories yet.</td></tr>';
-          } else {
-            cats.forEach(c => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td><b>${c.name}</b></td>
-                <td><input type="checkbox" ${c.blocked ? 'checked' : ''} data-name="${c.name}" class="blk"></td>
-                <td><input type="url" value="${c.block_url || ''}" data-name="${c.name}" class="bp"></td>
-                <td><button data-name="${c.name}" class="saveCat small">Save</button></td>
-              `;
-              tbody.appendChild(tr);
-            });
-          }
-        }
+    if (blockUrlsEl) blockUrlsEl.value = (p.block_urls || []).join('\n');
+    if (allowUrlsEl) allowUrlsEl.value = (p.allow_urls || []).join('\n');
 
-        // Populate schedule category dropdown
-        const sel = document.getElementById('schedCategory');
-        if (sel) {
-          sel.innerHTML = '';
-          cats.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.name;
-            opt.textContent = c.name;
-            sel.appendChild(opt);
-          });
-        }
-        updateScheduleForm();
+    const emails = getEmailsForPolicy(p.id || '');
+    if (emailsEl) emailsEl.value = emails.join('\n');
 
-        if (catMsg) catMsg.textContent = '';
-      } catch (e) {
-        console.error('Error loading categories', e);
-        if (catMsg) catMsg.textContent = 'Error loading AI categories.';
-      }
-
-      // Also re-render policy category checkboxes based on latest categories
-      renderPolicyCategoryCheckboxes();
+    if (isDefEl) {
+      isDefEl.value = (p.id && p.id === DEFAULT_POLICY_ID) ? 'yes' : 'no';
     }
 
-    async function saveCategory(name) {
-      const catMsg = document.getElementById('catMsg');
-      try {
-        const row = document.querySelector(`input.blk[data-name="${name}"]`)?.closest('tr');
-        if (!row) return;
-        const chk = row.querySelector('input.blk');
-        const urlInput = row.querySelector('input.bp');
-        const body = {
-          name: name,
-          blocked: !!(chk && chk.checked),
-          block_url: urlInput ? (urlInput.value || "") : ""
-        };
-        const res = await fetch('/api/ai/category', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(body)
-        });
-        if (!res.ok) throw new Error('Failed to save category');
-        if (catMsg) { catMsg.textContent = 'Category saved.'; catMsg.style.color = 'green'; }
-        // refresh to sync
-        refresh();
-      } catch (e) {
-        console.error('saveCategory error', e);
-        if (catMsg) { catMsg.textContent = 'Error saving category.'; catMsg.style.color = 'crimson'; }
-      }
-    }
+    renderPolicyCategoryCheckboxes(p);
+  }
 
-    async function saveCategorySchedule() {
-      const msg = document.getElementById('schedMsg');
-      if (msg) { msg.textContent = 'Saving…'; msg.style.color = 'inherit'; }
-      try {
-        const sel = document.getElementById('schedCategory');
-        const enabledEl = document.getElementById('schedEnabled');
-        const startEl = document.getElementById('schedStart');
-        const endEl = document.getElementById('schedEnd');
-        const weekdaysEl = document.getElementById('schedWeekdays');
-        if (!sel) return;
-        const name = sel.value;
-        const body = {
-          name,
-          schedule: {
-            enabled: !!(enabledEl && enabledEl.checked),
-            start: startEl ? (startEl.value || "") : "",
-            end: endEl ? (endEl.value || "") : "",
-            weekdays_only: weekdaysEl ? !!weekdaysEl.checked : false
-          }
-        };
-        const res = await fetch('/api/ai/category_schedule', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(body)
-        });
-        if (!res.ok) throw new Error('Failed');
-        if (msg) { msg.textContent = 'Schedule saved.'; msg.style.color = 'green'; }
-        refresh();
-      } catch (e) {
-        console.error('saveCategorySchedule error', e);
-        if (msg) { msg.textContent = 'Error saving schedule.'; msg.style.color = 'crimson'; }
-      }
-    }
+  function renderPoliciesList() {
+    const ul = document.getElementById('policiesList');
+    const defLabel = document.getElementById('currentDefaultLabel');
+    if (!ul) return;
+    ul.innerHTML = '';
+    const ids = Object.keys(POLICIES).sort((a,b)=>{
+      const pa = POLICIES[a] || {};
+      const pb = POLICIES[b] || {};
+      const da = pa.priority || 0;
+      const db = pb.priority || 0;
+      if (da !== db) return db - da;
+      const na = (pa.name || '').toLowerCase();
+      const nb = (pb.name || '').toLowerCase();
+      return na.localeCompare(nb);
+    });
 
-    // ============ Policies (UI editor) ============
-    let POLICIES = {};
-    let DEFAULT_POLICY_ID = null;
-    let CURRENT_POLICY_ID = null;
-
-    function renderPolicyCategoryCheckboxes(policy) {
-      const container = document.getElementById('policyCategoriesContainer');
-      if (!container) return;
-      const cats = _latestCategories || [];
-      const blockedSet = new Set((policy && policy.blocked_categories) || []);
-      container.innerHTML = '';
-      if (!cats.length) {
-        container.textContent = 'No AI categories yet. They will appear here once the classifier has categories.';
-        return;
-      }
-      cats.forEach(c => {
-        const label = document.createElement('label');
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.dataset.catName = c.name;
-        if (blockedSet.has(c.name)) cb.checked = true;
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(' ' + c.name));
-        container.appendChild(label);
-        container.appendChild(document.createElement('br'));
+    ids.forEach(id => {
+      const p = POLICIES[id];
+      const li = document.createElement('li');
+      let label = `${p.name || '(unnamed)'} [prio ${p.priority || 0}]`;
+      if (id === DEFAULT_POLICY_ID) label += ' (default)';
+      li.textContent = label;
+      li.dataset.id = id;
+      li.addEventListener('click', () => {
+        CURRENT_POLICY_ID = id;
+        fillPolicyForm(POLICIES[id]);
+        ul.querySelectorAll('li').forEach(el => el.classList.remove('selected'));
+        li.classList.add('selected');
       });
-    }
+      ul.appendChild(li);
+    });
 
-    function normalizeListFromInput(val) {
-      if (!val) return [];
-      return val
-        .split(/[\n,]/)
-        .map(s => s.trim())
-        .filter(Boolean);
+    if (defLabel) {
+      if (DEFAULT_POLICY_ID && POLICIES[DEFAULT_POLICY_ID]) {
+        defLabel.textContent = POLICIES[DEFAULT_POLICY_ID].name || DEFAULT_POLICY_ID;
+      } else {
+        defLabel.textContent = '(none)';
+      }
     }
+  }
 
-    function fillPolicyForm(p) {
+  async function loadAiCategories() {
+    const container = document.getElementById('policyCategoriesContainer');
+    try {
+      const res = await fetch('/api/ai/categories');
+      if (!res.ok) throw new Error('ai categories failed');
+      const j = await res.json();
+      AI_CATEGORIES = j.categories || [];
+    } catch (e) {
+      console.warn('Could not load AI categories', e);
+      AI_CATEGORIES = [];
+    }
+    // Render using the current policy (if any)
+    renderPolicyCategoryCheckboxes(CURRENT_POLICY_ID ? POLICIES[CURRENT_POLICY_ID] : null);
+    if (container && !AI_CATEGORIES.length) {
+      container.textContent = 'No AI categories yet. Once the classifier has categories, they will appear here.';
+    }
+  }
+
+  async function loadPolicyAssignments() {
+    try {
+      const r = await fetch('/api/policy_assignments');
+      if (!r.ok) return;
+      const j = await r.json();
+      if (!j.ok) return;
+      ASSIGNMENTS = j.policy_assignments || {users:{},groups:{}};
+      DEFAULT_POLICY_ID = j.default_policy_id || null;
+    } catch (e) {
+      console.error('loadPolicyAssignments error', e);
+    }
+  }
+
+  async function loadPoliciesUI() {
+    try {
+      const r = await fetch('/api/policies');
+      if (!r.ok) return;
+      const j = await r.json();
+      if (!j.ok) return;
+      POLICIES = j.policies || {};
+      DEFAULT_POLICY_ID = j.default_policy_id || null;
+      await loadPolicyAssignments();
+      renderPoliciesList();
+      const firstId = Object.keys(POLICIES)[0];
+      if (firstId) {
+        fillPolicyForm(POLICIES[firstId]);
+        CURRENT_POLICY_ID = firstId;
+      } else {
+        fillPolicyForm(null);
+      }
+    } catch (e) {
+      console.error('loadPoliciesUI error', e);
+    }
+  }
+
+  async function saveCurrentPolicy() {
+    const msg = document.getElementById('policiesMsg');
+    if (msg) { msg.textContent = 'Saving…'; msg.style.color = ''; }
+
+    try {
       const idEl = document.getElementById('policyId');
       const nameEl = document.getElementById('policyName');
       const prioEl = document.getElementById('policyPriority');
       const activeEl = document.getElementById('policyActive');
-      const schEnEl = document.getElementById('policyScheduleEnabled');
+      const schedEnEl = document.getElementById('policyScheduleEnabled');
       const startEl = document.getElementById('policyStart');
       const endEl = document.getElementById('policyEnd');
       const wdEl = document.getElementById('policyWeekdaysOnly');
-      const buEl = document.getElementById('policyBlockUrls');
-      const auEl = document.getElementById('policyAllowUrls');
+      const blockUrlsEl = document.getElementById('policyBlockUrls');
+      const allowUrlsEl = document.getElementById('policyAllowUrls');
+      const emailsEl = document.getElementById('policyEmails');
       const isDefEl = document.getElementById('policyIsDefault');
 
-      if (!p) {
-        CURRENT_POLICY_ID = null;
-        if (idEl) idEl.value = "";
-        if (nameEl) nameEl.value = "";
-        if (prioEl) prioEl.value = "0";
-        if (activeEl) activeEl.checked = true;
-        if (schEnEl) schEnEl.checked = false;
-        if (startEl) startEl.value = "";
-        if (endEl) endEl.value = "";
-        if (wdEl) wdEl.checked = false;
-        if (buEl) buEl.value = "";
-        if (auEl) auEl.value = "";
-        if (isDefEl) isDefEl.value = "no";
-        renderPolicyCategoryCheckboxes(null);
-        return;
-      }
-
-      CURRENT_POLICY_ID = p.id || "";
-      if (idEl) idEl.value = p.id || "";
-      if (nameEl) nameEl.value = p.name || "";
-      if (prioEl) prioEl.value = typeof p.priority === "number" ? p.priority : 0;
-      if (activeEl) activeEl.checked = p.active !== false;
-
-      const sch = p.schedule || {};
-      if (schEnEl) schEnEl.checked = !!sch.enabled;
-      if (startEl) startEl.value = sch.start || "";
-      if (endEl) endEl.value = sch.end || "";
-      if (wdEl) wdEl.checked = !!sch.weekdays_only;
-
-      if (buEl) buEl.value = (p.block_urls || []).join("\n");
-      if (auEl) auEl.value = (p.allow_urls || []).join("\n");
-
-      if (isDefEl) {
-        isDefEl.value = (p.id && p.id === DEFAULT_POLICY_ID) ? "yes" : "no";
-      }
-
-      renderPolicyCategoryCheckboxes(p);
-    }
-
-    function renderPoliciesList() {
-      const ul = document.getElementById('policiesList');
-      const defLabel = document.getElementById('currentDefaultLabel');
-      if (!ul) return;
-      ul.innerHTML = "";
-      const ids = Object.keys(POLICIES).sort((a, b) => {
-        const pa = POLICIES[a] || {};
-        const pb = POLICIES[b] || {};
-        const da = (pa.priority || 0);
-        const db = (pb.priority || 0);
-        if (da !== db) return db - da;
-        const na = (pa.name || "").toLowerCase();
-        const nb = (pb.name || "").toLowerCase();
-        return na.localeCompare(nb);
-      });
-
-      ids.forEach(id => {
-        const p = POLICIES[id];
-        const li = document.createElement('li');
-        let label = `${p.name || '(unnamed)'} [prio ${p.priority || 0}]`;
-        if (id === DEFAULT_POLICY_ID) label += ' (default)';
-        li.textContent = label;
-        li.dataset.id = id;
-        li.style.cursor = 'pointer';
-        li.addEventListener('click', () => {
-          CURRENT_POLICY_ID = id;
-          fillPolicyForm(POLICIES[id]);
-          const siblings = ul.querySelectorAll('li');
-          siblings.forEach(x => x.classList.remove('selected'));
-          li.classList.add('selected');
+      // Blocked categories from checkboxes
+      const blockedCats = [];
+      const catContainer = document.getElementById('policyCategoriesContainer');
+      if (catContainer) {
+        catContainer.querySelectorAll('input[type="checkbox"][data-cat-name]').forEach(cb => {
+          if (cb.checked) blockedCats.push(cb.dataset.catName);
         });
-        ul.appendChild(li);
+      }
+
+      const body = {
+        id: (idEl && idEl.value.trim()) || '',
+        name: (nameEl && nameEl.value.trim()) || 'Untitled Policy',
+        priority: prioEl ? parseInt(prioEl.value || '0', 10) : 0,
+        active: activeEl ? !!activeEl.checked : true,
+        blocked_categories: blockedCats,
+        allowed_categories: [], // not exposed in UI
+        block_urls: normalizeLines(blockUrlsEl && blockUrlsEl.value),
+        allow_urls: normalizeLines(allowUrlsEl && allowUrlsEl.value),
+        schedule: {
+          enabled: schedEnEl ? !!schedEnEl.checked : false,
+          start: startEl ? (startEl.value || '') : '',
+          end: endEl ? (endEl.value || '') : '',
+          weekdays_only: wdEl ? !!wdEl.checked : false
+        }
+      };
+
+      const r = await fetch('/api/policies', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
       });
-
-      if (defLabel) {
-        if (DEFAULT_POLICY_ID && POLICIES[DEFAULT_POLICY_ID]) {
-          defLabel.textContent = `${POLICIES[DEFAULT_POLICY_ID].name || DEFAULT_POLICY_ID}`;
-        } else {
-          defLabel.textContent = '(none)';
-        }
-      }
-    }
-
-    async function loadPoliciesUI() {
-      try {
-        const r = await fetch('/api/policies');
-        if (!r.ok) return;
-        const j = await r.json();
-        if (!j.ok) return;
-        POLICIES = j.policies || {};
-        DEFAULT_POLICY_ID = j.default_policy_id || null;
-        renderPoliciesList();
-        const firstId = Object.keys(POLICIES)[0];
-        if (firstId) {
-          fillPolicyForm(POLICIES[firstId]);
-          CURRENT_POLICY_ID = firstId;
-        } else {
-          fillPolicyForm(null);
-        }
-      } catch (e) {
-        console.error('loadPoliciesUI', e);
-      }
-    }
-
-    async function saveCurrentPolicy() {
-      const msg = document.getElementById('policiesMsg');
-      if (msg) { msg.textContent = 'Saving…'; msg.style.color = 'inherit'; }
-
-      try {
-        const idEl = document.getElementById('policyId');
-        const nameEl = document.getElementById('policyName');
-        const prioEl = document.getElementById('policyPriority');
-        const activeEl = document.getElementById('policyActive');
-        const schEnEl = document.getElementById('policyScheduleEnabled');
-        const startEl = document.getElementById('policyStart');
-        const endEl = document.getElementById('policyEnd');
-        const wdEl = document.getElementById('policyWeekdaysOnly');
-        const buEl = document.getElementById('policyBlockUrls');
-        const auEl = document.getElementById('policyAllowUrls');
-        const isDefEl = document.getElementById('policyIsDefault');
-
-        // collect blocked categories from checkboxes
-        const bc = [];
-        const catContainer = document.getElementById('policyCategoriesContainer');
-        if (catContainer) {
-          catContainer.querySelectorAll('input[type="checkbox"][data-cat-name]').forEach(cb => {
-            if (cb.checked) bc.push(cb.dataset.catName);
-          });
-        }
-
-        const body = {
-          id: (idEl && idEl.value.trim()) || "",
-          name: (nameEl && nameEl.value.trim()) || "Untitled Policy",
-          priority: prioEl ? parseInt(prioEl.value || "0", 10) : 0,
-          active: activeEl ? !!activeEl.checked : true,
-          blocked_categories: bc,
-          allowed_categories: [], // not used in this UI, but backend supports it
-          block_urls: normalizeListFromInput(buEl && buEl.value.replace(/,/g, '\n')),
-          allow_urls: normalizeListFromInput(auEl && auEl.value.replace(/,/g, '\n')),
-          schedule: {
-            enabled: schEnEl ? !!schEnEl.checked : false,
-            start: startEl ? (startEl.value || "") : "",
-            end: endEl ? (endEl.value || "") : "",
-            weekdays_only: wdEl ? !!wdEl.checked : false
-          }
-        };
-
-        const wantDefault = isDefEl && isDefEl.value === "yes";
-
-        // First save policy
-        const r = await fetch('/api/policies', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(body)
-        });
-        const j = await r.json();
-        if (!j.ok) {
-          if (msg) { msg.textContent = 'Error saving policy'; msg.style.color = 'crimson'; }
-          return;
-        }
-        const saved = j.policy;
-        POLICIES[saved.id] = saved;
-        CURRENT_POLICY_ID = saved.id;
-
-        // Now handle default flag via /api/policy_assignments
-        if (wantDefault) {
-          await fetch('/api/policy_assignments', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ default_policy_id: saved.id })
-          });
-          DEFAULT_POLICY_ID = saved.id;
-        } else if (!wantDefault && DEFAULT_POLICY_ID === saved.id) {
-          await fetch('/api/policy_assignments', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ default_policy_id: null })
-          });
-          DEFAULT_POLICY_ID = null;
-        }
-
-        fillPolicyForm(saved);
-        renderPoliciesList();
-        if (msg) { msg.textContent = 'Policy saved'; msg.style.color = 'green'; }
-      } catch (e) {
-        console.error('saveCurrentPolicy', e);
-        const msg = document.getElementById('policiesMsg');
+      const j = await r.json();
+      if (!j.ok) {
         if (msg) { msg.textContent = 'Error saving policy'; msg.style.color = 'crimson'; }
-      }
-    }
-
-    async function deleteCurrentPolicy() {
-      const msg = document.getElementById('policiesMsg');
-      if (!CURRENT_POLICY_ID) {
-        if (msg) { msg.textContent = 'No policy selected'; msg.style.color = 'crimson'; }
         return;
       }
-      if (!confirm('Delete this policy?')) return;
-      try {
-        await fetch('/api/policies', {
-          method: 'DELETE',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ id: CURRENT_POLICY_ID })
-        });
-        delete POLICIES[CURRENT_POLICY_ID];
-        if (CURRENT_POLICY_ID === DEFAULT_POLICY_ID) DEFAULT_POLICY_ID = null;
-        CURRENT_POLICY_ID = null;
-        fillPolicyForm(null);
-        renderPoliciesList();
-        if (msg) { msg.textContent = 'Policy deleted'; msg.style.color = 'green'; }
-      } catch (e) {
-        console.error('deleteCurrentPolicy', e);
-        if (msg) { msg.textContent = 'Error deleting policy'; msg.style.color = 'crimson'; }
+
+      const saved = j.policy;
+      POLICIES[saved.id] = saved;
+      CURRENT_POLICY_ID = saved.id;
+
+      // Now handle email assignments + default flag via /api/policy_assignments
+      const usersPatch = {};
+      const newEmails = normalizeLines(emailsEl && emailsEl.value).map(e => e.toLowerCase());
+      const existing = getEmailsForPolicy(saved.id);
+      const newSet = new Set(newEmails);
+      const oldSet = new Set(existing);
+
+      // Remove old ones not in new list
+      oldSet.forEach(email => {
+        if (!newSet.has(email)) {
+          usersPatch[email] = null;
+        }
+      });
+      // Add / reassign each new email to this policy
+      newSet.forEach(email => {
+        usersPatch[email] = saved.id;
+      });
+
+      const wantDefault = isDefEl && isDefEl.value === 'yes';
+      const assignBody = { users: usersPatch };
+      if (wantDefault) {
+        assignBody.default_policy_id = saved.id;
+      } else if (!wantDefault && DEFAULT_POLICY_ID === saved.id) {
+        assignBody.default_policy_id = null;
       }
+
+      await fetch('/api/policy_assignments', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(assignBody)
+      });
+
+      // Reload assignments & policies to sync view
+      await loadPolicyAssignments();
+      fillPolicyForm(saved);
+      renderPoliciesList();
+
+      if (msg) { msg.textContent = 'Policy saved'; msg.style.color = 'green'; }
+    } catch (e) {
+      console.error('saveCurrentPolicy error', e);
+      if (msg) { msg.textContent = 'Error saving policy'; msg.style.color = 'crimson'; }
+    }
+  }
+
+  async function deleteCurrentPolicy() {
+    const msg = document.getElementById('policiesMsg');
+    if (!CURRENT_POLICY_ID) {
+      if (msg) { msg.textContent = 'No policy selected'; msg.style.color = 'crimson'; }
+      return;
+    }
+    if (!confirm('Delete this policy?')) return;
+    try {
+      await fetch('/api/policies', {
+        method:'DELETE',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id: CURRENT_POLICY_ID})
+      });
+      delete POLICIES[CURRENT_POLICY_ID];
+      CURRENT_POLICY_ID = null;
+      await loadPolicyAssignments();
+      fillPolicyForm(null);
+      renderPoliciesList();
+      if (msg) { msg.textContent = 'Policy deleted'; msg.style.color = 'green'; }
+    } catch (e) {
+      console.error('deleteCurrentPolicy error', e);
+      if (msg) { msg.textContent = 'Error deleting policy'; msg.style.color = 'crimson'; }
+    }
+  }
+
+  // ============ SIMPLE USER MANAGEMENT ============
+  document.getElementById('saveUser').onclick = async ()=>{
+    const email = document.getElementById('userEmail').value.trim().toLowerCase();
+    const password = document.getElementById('userPassword').value;
+    const role = document.getElementById('userRole').value || 'teacher';
+    const msgEl = document.getElementById('userMsg');
+
+    if (!email || !password) {
+      msgEl.textContent = 'Email and password are required';
+      msgEl.style.color = 'crimson';
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      // Categories / schedules
-      refresh();
-      const schedSel = document.getElementById('schedCategory');
-      if (schedSel) schedSel.addEventListener('change', updateScheduleForm);
-      const saveSchedBtn = document.getElementById('saveScheduleBtn');
-      if (saveSchedBtn) saveSchedBtn.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        saveCategorySchedule();
-      });
-      // Delegate save button for categories
-      const catsTbody = document.getElementById('cats');
-      if (catsTbody) {
-        catsTbody.addEventListener('click', function(ev) {
-          const btn = ev.target.closest('.saveCat');
-          if (!btn) return;
-          ev.preventDefault();
-          const name = btn.getAttribute('data-name');
-          if (name) saveCategory(name);
-        });
-      }
-
-      // Policies UI
-      loadPoliciesUI();
-      const saveBtn = document.getElementById('savePolicyBtn');
-      const newBtn = document.getElementById('newPolicyBtn');
-      const delBtn = document.getElementById('deletePolicyBtn');
-      if (saveBtn) saveBtn.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        saveCurrentPolicy();
-      });
-      if (newBtn) newBtn.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        CURRENT_POLICY_ID = null;
-        fillPolicyForm(null);
-      });
-      if (delBtn) delBtn.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        deleteCurrentPolicy();
-      });
+    const r = await fetch('/api/users', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, password, role })
     });
-  </script>
+
+    if (r.ok) {
+      msgEl.textContent = 'User saved';
+      msgEl.style.color = 'green';
+      document.getElementById('userPassword').value = '';
+    } else {
+      const t = await r.text();
+      msgEl.textContent = 'Error: ' + (t || 'could not save user');
+      msgEl.style.color = 'crimson';
+    }
+  };
+
+  document.getElementById('deleteUser').onclick = async ()=>{
+    const email = document.getElementById('deleteEmail').value.trim().toLowerCase();
+    const msgEl = document.getElementById('deleteMsg');
+
+    if (!email) {
+      msgEl.textContent = 'Email is required';
+      msgEl.style.color = 'crimson';
+      return;
+    }
+
+    if (!confirm('Delete user ' + email + '? This cannot be undone.')) return;
+
+    const r = await fetch('/api/users/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
+
+    if (r.ok) {
+      msgEl.textContent = 'User deleted (if it existed)';
+      msgEl.style.color = 'green';
+    } else {
+      const t = await r.text();
+      msgEl.textContent = 'Error: ' + (t || 'could not delete user');
+      msgEl.style.color = 'crimson';
+    }
+  };
+
+  // ============ Init ============
+  (async function init() {
+    await loadAiCategories();
+    await loadPoliciesUI();
+
+    const saveBtn = document.getElementById('savePolicyBtn');
+    const newBtn = document.getElementById('newPolicyBtn');
+    const delBtn = document.getElementById('deletePolicyBtn');
+
+    if (saveBtn) saveBtn.onclick = (ev)=>{ ev.preventDefault(); saveCurrentPolicy(); };
+    if (newBtn) newBtn.onclick = (ev)=>{ ev.preventDefault(); fillPolicyForm(null); };
+    if (delBtn) delBtn.onclick = (ev)=>{ ev.preventDefault(); deleteCurrentPolicy(); };
+  })();
+</script>
 </body>
 </html>
